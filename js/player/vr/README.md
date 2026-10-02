@@ -1,6 +1,6 @@
 # VR browser player
 
-Open the MVC player in the headset's WebXR browser using a **trusted HTTPS**
+Open EDI Player in the headset's WebXR browser using a **trusted HTTPS**
 address, add videos/assets, then use the headset icon in the player toolbar.
 The same native video, playlist, playback events and EDI synchronization continue
 to own playback. Videos remain local to the browser where they were selected;
@@ -95,7 +95,7 @@ video decode, GPU fill rate or texture upload.
 
 ## Verification
 
-Run `node --test Tests/*.test.mjs` from the solution root. With Playwright
+Run `node --test Tests/*.test.mjs` from the repository folder. With Playwright
 available and Edge installed, run `node --test Tests/browser/*.test.mjs`.
 The browser tests serve static files and mock all EDI/device endpoints. The fake
 WebXR boundary exercises the actual Three.js/WebGL rendering, A/B configuration,
