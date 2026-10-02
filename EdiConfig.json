@@ -1,0 +1,9 @@
+{
+  "Edi": {
+    "AutoLaunch": true,
+    "ExecuteOnReady": "http://127.0.0.1:5000/"
+  },
+  "Gallery": {
+    "GalleryPath": "./"
+  }
+}
