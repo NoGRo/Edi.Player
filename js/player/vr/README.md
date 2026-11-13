@@ -12,20 +12,25 @@ Supported codecs/resolutions depend on that browser and headset.
 | Input | Action |
 | --- | --- |
 | Grip / squeeze, pointing at the video | Hold to move the flat video screen inside its forward viewing cone; it stays facing the viewer |
-| Trigger on a control | Activate the original HTML control; drag sliders, choose select options and edit numeric fields |
 | Trigger held on the video | Also moves/rotates it using the pointer pose |
-| Short trigger on video or empty space | Show/hide the complete fullscreen-style control overlay |
+| Point near the button below/right of the video | Reveal the lightweight Three.js `Exit VR` button |
+| Trigger on `Exit VR` | End the immersive session and return to the unchanged web player |
 | A (X on left Touch controller) | Original video left-mouse sequence: video play/pause, or devices pause/resume when the player stroker option is enabled |
 | B (Y on left Touch controller) | Original right-mousedown variant action, respecting whether that feature is enabled |
-| Stick up/down | Intensity, respecting the existing intensity toggle and per-device participation |
-| Stick while pointing at video controls | Seek, horizontally or vertically; the volume area takes priority |
-| Stick while pointing at volume | Volume up/down |
+| Stick click | Play/pause the video; while gripping the video, recenter the screen |
+| Stick up/down | Analog intensity: cubic response up to 200 points/s, updated at 4 Hz and on release; respects the intensity toggle and per-device participation |
+| Stick left/right at 80% travel, near horizontal | Seek back/forward 10 seconds; after 0.5 s repeat at 4 Hz, increasing each jump up to 30 seconds after 3 s held. Release below 70% or move vertically to stop and reset acceleration |
 
-The lock button enables delayed head following. It captures the video's chosen
-position relative to the current head pose. After two seconds
-of stillness by default, a movement over 8 degrees or 10 cm eases back into that
-view position. Small motion is ignored. Dragging suspends following and records
-the new position on release. The menu adjusts the delay (0.5–5 s), smoothing,
+The lock button enables enforced head following. It captures the video's chosen
+position relative to the current head pose and uses an inner contour derived from
+the screen's current physical width and aspect ratio, so a wide screen permits
+more horizontal than vertical looking. Remaining inside that contour does not
+move the screen. Staying outside it for the configured delay starts enforcement;
+once started, further head movement retargets the screen instead of cancelling
+it. Enforcement ends only after the screen catches the current pose and the head
+is still. Its motion is deliberately timid at launch, firm through the middle and
+slow for the final alignment. Dragging suspends following and records the new
+position on release. The menu adjusts the delay (0.5–5 s), response speed,
 screen width/distance and horizontal/vertical offsets. Recenter restores the screen
 in the current view. Native session visibility loss pauses playback through the
 same media event/synchronization path as desktop pause.
@@ -51,34 +56,52 @@ Packing, eye order and half-size overrides persist **per filename** under
 
 `immersive.mjs` owns entry, exit, preferences and the module's callback ports.
 `runtime.mjs` owns the WebXR session renderer, poses, controller subscriptions,
-grab/follow state and frame loop. `video-surface.mjs` owns the video texture and
-per-eye geometries. `format.mjs` and `motion.mjs` are hardware-free math/input seams.
-`menu.mjs` owns only the additional VR settings UI.
+grab/follow state and frame loop. `video-surface.mjs` owns the shared video
+texture and per-eye geometries for both flat and curved screens.
+`media-layer.mjs` is retained but native media promotion is disabled to keep
+video and the exit control in the same projection. `format.mjs` and `motion.mjs` are hardware-free math/input seams.
+`menu.mjs` owns only the additional VR settings UI. `summary.mjs` paints the shared
+player feedback model directly into a canvas texture: pause, intensity, variant
+notices and the activity summary retain their desktop colors and lifetimes.
 
-`html-panels.mjs` temporarily moves the **original** fullscreen toolbar, video
-controls, playlist and device panels into one overlay surface on the video. It
-paints that HTML to one canvas texture and translates ray coordinates back to
-the original events. It observes DOM mutations, scroll and input changes; no
-second player or device-menu implementation exists. Native selects get a popup backed
-by the original options and change handler. Existing open dialogs are captured
-in place; range handles and playlist/device reordering retain their handlers.
-Exiting restores all moved nodes using placeholders, disconnects observers and
-controller listeners, cancels the frame loop and disposes geometries/textures.
-Loading or painting failure returns to desktop controls with a visible message.
+The immersive runtime never moves or rasterizes the fullscreen HTML controls.
+They remain in the normal web player and are not rendered over the video in VR.
+The VR UI includes a canvas summary at the video's upper-right corner and a
+small Three.js exit button below the screen's right edge;
+its larger invisible proximity target reveals it when a controller points near
+the button. Exiting cancels the frame loop and disposes controller listeners,
+geometries and textures without touching the desktop DOM.
+Controller movement over the video reveals the summary with the same
+650 ms activity threshold and hide delay as desktop pointer movement. The canvas
+is repainted only when its content changes; fades update material opacity and
+scale, and resizing/curvature changes preserve its screen-relative placement.
+After the pointer fades, revealing it requires at least 450 ms of sustained
+movement covering 5 cm or about 9 degrees. Tiny corrections and brief movements
+leave it hidden; trigger/grip interactions remain immediate.
 
 The player composition root imports only the lightweight entry module. Three.js
-and the HTML renderer load when entering VR, from pinned local files under
+loads when entering VR, from pinned local files under
 `lib/vr`; normal playback does not need a CDN. No EDI API or core/device
 code is changed by this mode.
 
-Quest rendering uses Three.js' WebXR framebuffer scaling and compositor foveation,
-with MSAA disabled. HTML snapshots use one shared, throttled capture budget and
-CSS-pixel textures so DOM changes cannot continuously stall the XR frame loop.
+Flat and curved video use the same WebGL projection as the exit control and
+controller pointers. Curvature changes geometry without switching compositor
+streams, so screen dimensions and placement remain consistent with the controls.
+The renderer queries the headset's native framebuffer scale and uses at least
+the full recommended resolution, disables
+fixed foveation and enables MSAA. Size and curve adjustments reuse the video texture.
+Curvature preserves horizontal image coordinates and bends only depth; it does
+not widen the center. Grip + left stick increases curvature; right flattens it.
+Video textures retain the decoded source resolution, sRGB color and linear filtering,
+with the GPU's supported anisotropy for angled views. No per-frame mipmap generation
+or full-screen blur pass is added.
+These quality settings increase GPU work; smooth playback and the actual visual
+result still need verification on the physical headset.
 
 ## Quest diagnostics
 
 While a session is running, `window.ediVrDiagnostics` contains the current FPS,
-last and worst JavaScript frame time, video readiness, HTML snapshot duration and
+last and worst JavaScript frame time, video readiness, selected video stream and
 the last runtime error. The last sample remains available after leaving VR. A
 frame-loop exception is also printed as `VR frame failed` and ends the session
 with the error shown in the VR settings status instead of leaving a silent black
@@ -87,25 +110,5 @@ screen.
 For a physical headset, enable Developer Mode and USB debugging, connect it with
 ADB, open the player in Meta Quest Browser, then inspect that tab from desktop
 Chrome at `chrome://inspect/#devices`. In DevTools, inspect
-`window.ediVrDiagnostics` in Console and record the Performance panel while
-showing and hiding the menus. Compare `fps`/`maxFrameMs` with the panel
-`lastCaptureMs` and `maxCaptureMs`: a frame spike matching a capture identifies
-main-thread HTML rasterization; low FPS without capture spikes points instead to
-video decode, GPU fill rate or texture upload.
-
-## Verification
-
-Run `node --test Tests/*.test.mjs` from the repository folder. With Playwright
-available and Edge installed, run `node --test Tests/browser/*.test.mjs`.
-The browser tests serve static files and mock all EDI/device endpoints. The fake
-WebXR boundary exercises the actual Three.js/WebGL rendering, A/B configuration,
-stick routing, trigger/grip dragging for SBS and mono, hand rotation, delayed head
-following with micro-motion tolerance, reentry and error cleanup.
-HTML panel PNGs can be inspected at `%TEMP%/edi-vr-settings-qa.png`.
-Physical headset ergonomics, decoding limits and controller compatibility still
-need a headset test; the simulator does not establish those.
-
-Reference APIs: [WebXR security](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security),
-[WebXR gamepad mapping](https://www.w3.org/TR/webxr-gamepads-module-1/),
-[Three.js WebXRManager](https://threejs.org/docs/pages/WebXRManager.html),
-[DeoVR format documentation](https://deovr.com/documentation).
+`window.ediVrDiagnostics` in Console and record the Performance panel while playing video and moving the screen. Inspect `fps`/`maxFrameMs` while adjusting curvature; `videoStream` stays
+`webgl-texture` for both flat and curved screens.

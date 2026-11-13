@@ -55,6 +55,7 @@ export async function installFakeXr(page) {
             async end() { if (!this.ended) { this.ended = true; this.dispatchEvent(new Event('end')); } }
         }
         class Layer {
+            constructor(session, context, options = {}) { this.framebufferScaleFactor = options.framebufferScaleFactor; }
             framebuffer = null; framebufferWidth = 1024; framebufferHeight = 512; ignoreDepthValues = false;
             getViewport(view) { return { x: view.eye === 'left' ? 0 : 512, y: 0, width: 512, height: 512 }; }
         }

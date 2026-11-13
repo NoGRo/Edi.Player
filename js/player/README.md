@@ -88,8 +88,12 @@ and applies only that device's active side; the global side remains unchanged.
 
 Video options are derived from matching assets through `funscript-tools`, intersected
 with the device's advertised variants. History is stored per video filename and device.
-Without history, compatible previous choices continue; otherwise a valid configured
-default or the first available original is used. An explicit `Stopped` survives navigation.
+Without history, compatible previous choices continue for each device and side.
+Otherwise primary uses `default` (case insensitive), or the first available original.
+Secondary defaults to Auto Halve of that primary base; compatible saved automatic
+choices retain their original base. An explicit `Stopped` survives navigation.
+The main switch button toggles right-click switching without opening a defaults menu;
+pairs remain editable in Devices.
 Files dropped together upload before initial variant preparation, so the returned
 definitions update every playlist duration immediately. The local media source loads
 before device preparation; device Play commands and autoplay await variant readiness.

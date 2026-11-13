@@ -15,7 +15,7 @@ playback controls, playlists, per-device settings and an immersive VR mode.
 - Select primary and secondary variants and generate automatic variants from
   existing scripts.
 - Watch videos on a movable flat screen in VR, including mono and side-by-side
-  stereo video, with interactive playback, playlist and device panels.
+  stereo video, with controller playback actions and a pointer-revealed exit button.
 
 ## Requirements
 

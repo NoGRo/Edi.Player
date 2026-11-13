@@ -26,7 +26,7 @@ export function createVrMenu({ elements, preferences, onChange, onRecenter, onEx
         <p class="small text-muted vr-help">Grip: point at the video and hold to move it; the screen stays facing you.<br>
             Trigger: click a control; hold the video to move it; tap the video or empty space to show/hide every panel.<br>
             The blue dot is the exact HTML click point.<br>
-            A/X: player mouse action · B/Y or stick sideways: variant · Stick vertical: intensity.<br>
+            A/X: player mouse action · B/Y: variant · Stick click: video play/pause · Stick vertical: progressive intensity · Stick sideways at 80%: seek 10 seconds; hold to accelerate.<br>
             Grip + stick: vertical changes size, horizontal changes curve; click the stick to recenter.</p>
         <div class="d-flex gap-2"><button type="button" class="btn btn-primary" data-vr-recenter>Recenter video</button>
             <button type="button" class="btn btn-outline-secondary" data-vr-auto>Detect filename</button>

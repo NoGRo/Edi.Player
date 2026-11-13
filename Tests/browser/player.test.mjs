@@ -22,6 +22,10 @@ test('device buttons route controls selectively and keep hidden pause out of var
             variants: ['primary', 'secondary', 'None'], selectedVariant: 'primary',
             min: 0, max: 100, baseMin: 0, baseMax: 100
         }));
+        await page.addInitScript(() => localStorage.setItem('edi-player-device-variant-pairs-v2', JSON.stringify(
+            Object.fromEntries(['First', 'Second'].map(name => [name, {
+                primary: 'real:primary', secondary: 'real:secondary', activeSide: 'primary'
+            }])))));
         await page.route('**/Edi/**', route => route.fulfill({ json: [] }));
         await page.route('**/Devices**', route => {
             const request = route.request();
@@ -85,6 +89,11 @@ test('device buttons route controls selectively and keep hidden pause out of var
         assert.deepEqual(calls, []);
         await first.locator('.device-variant-switch').click();
         await page.locator('#variantToggle').click();
+        assert.equal(await page.locator('#variantTogglePanel').count(), 0);
+        assert.equal(await page.locator('#variantToggle').getAttribute('aria-pressed'), 'true');
+        await page.locator('#variantToggle').press('Enter');
+        assert.equal(await page.locator('#variantToggle').getAttribute('aria-pressed'), 'false');
+        await page.locator('#variantToggle').press('Enter');
         await page.locator('#videoPlayer').dispatchEvent('mousedown', { button: 2 });
         await page.waitForFunction(() => document.querySelectorAll('.device-variant-active')[1]?.value === 'real:secondary');
         assert.deepEqual(calls, [{ path: '/Devices/Variants?persist=false', body: { Second: 'secondary' } }]);
@@ -96,7 +105,63 @@ test('device buttons route controls selectively and keep hidden pause out of var
         await first.locator('[data-control=variant]').click();
         await page.waitForFunction(() => document.querySelectorAll('.device-variant-active')[0]?.value === 'real:secondary');
         assert.deepEqual(calls, [{ path: '/Devices/Variants?persist=false', body: { First: 'secondary' } }]);
+        for (const width of [1400, 390]) {
+            await page.setViewportSize({ width, height: 900 });
+            await page.locator('#variantToggle').scrollIntoViewIfNeeded();
+            const box = await page.locator('#variantToggle').boundingBox();
+            assert.ok(box.x >= 0 && box.x + box.width <= width);
+            await page.locator('#variantToggle').press('Enter');
+            assert.equal(await page.locator('#variantToggle').getAttribute('aria-pressed'), 'false');
+            await page.locator('#variantToggle').press('Enter');
+        }
+        await page.locator('#videoStage').evaluate(stage => stage.requestFullscreen());
+        await page.locator('#variantToggle').press('Enter');
+        assert.equal(await page.locator('#variantToggle').getAttribute('aria-pressed'), 'false');
+        await page.evaluate(() => document.exitFullscreen());
         assert.deepEqual(errors, []);
+    } finally {
+        await browser?.close();
+        await new Promise(done => server.close(done));
+    }
+});
+
+test('video pause receives hover and clicks above fullscreen overlays', async () => {
+    const server = await staticServer();
+    let browser;
+    try {
+        browser = await chromium.launch({ channel: 'msedge', headless: true });
+        const page = await browser.newPage();
+        await page.route('**/Edi/**', route => route.fulfill({ json: [] }));
+        await page.route('**/Devices**', route => route.fulfill({ json: [] }));
+        await page.goto(`http://127.0.0.1:${server.address().port}/`);
+        await page.locator('#mediaFiles').setInputFiles(fileURLToPath(new URL('./drop-video.webm', import.meta.url)));
+        await page.waitForFunction(() => document.querySelector('#videoPlayer').readyState >= 2);
+        await page.evaluate(() => { document.querySelector('#videoPlayer').loop = true; });
+        const pause = page.locator('#customPlayPause');
+        for (const width of [1400, 390]) {
+            await page.setViewportSize({ width, height: 900 });
+            for (const fullscreen of [false, true]) {
+                if (fullscreen) await page.locator('#videoStage').evaluate(stage => stage.requestFullscreen());
+                await page.locator('#videoStage').scrollIntoViewIfNeeded();
+                const stage = await page.locator('#videoStage').boundingBox();
+                await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height - 12);
+                await pause.hover({ timeout: 3000 });
+                assert.equal(await pause.evaluate(button => button.matches(':hover')), true);
+                // Actual mouse clicks must reach the button, including the left edge
+                // covered by the fullscreen toolbar's invisible reveal strip.
+                await pause.click();
+                await page.waitForFunction(() => !document.querySelector('#videoPlayer').paused);
+                await pause.click();
+                await page.waitForFunction(() => document.querySelector('#videoPlayer').paused);
+                await pause.focus();
+                await pause.press('Enter');
+                await page.waitForFunction(() => !document.querySelector('#videoPlayer').paused);
+                await pause.focus();
+                await pause.press('Enter');
+                await page.waitForFunction(() => document.querySelector('#videoPlayer').paused);
+                if (fullscreen) await page.evaluate(() => document.exitFullscreen());
+            }
+        }
     } finally {
         await browser?.close();
         await new Promise(done => server.close(done));
@@ -202,7 +267,7 @@ test('video variants prepare before activation, remember base choices, retain st
                 calls.push({ method: request.method(), path: url.pathname, names });
                 serverNames = request.method() === 'POST' ? names : [...new Set([...serverNames, ...names])];
                 for (const name of names) {
-                    const match = name.match(/\.(__auto_[^.]+)\.funscript$/);
+                    const match = name.match(/\.(__auto_[^.]+)(?:\.[^.]+)?\.funscript$/);
                     if (match) devices.forEach(device => {
                         if (!device.variants.includes(match[1])) device.variants.push(match[1]);
                     });
@@ -247,7 +312,10 @@ test('video variants prepare before activation, remember base choices, retain st
         assert.equal(await first.locator('select').first().inputValue(), 'real:fast');
         assert.equal(await second.locator('select').first().inputValue(), 'real:None');
         assert.deepEqual(await first.locator('select').first().locator('optgroup').first().locator('option')
-            .evaluateAll(options => options.map(option => option.value)), ['real:fast', 'real:slow', 'real:None']);
+            .evaluateAll(options => options.map(option => option.value)),
+            ['real:fast', 'real:slow', 'real:None', 'real:__auto_halve_fast']);
+        assert.equal(await first.locator('select').nth(1).inputValue(), 'auto:halve', await page.locator('#variantToggleStatus').textContent());
+        assert.equal(await page.locator('dialog').count(), 0);
         await first.locator('select').nth(1).selectOption('real:slow');
         calls.length = 0;
         await first.locator('.device-variant-switch').click();
@@ -280,13 +348,16 @@ test('video variants prepare before activation, remember base choices, retain st
         assert.equal(await page.locator('dialog').count(), 0);
         assert.equal(await first.locator('select').first().inputValue(), 'real:fast');
         assert.equal(await second.locator('select').first().inputValue(), 'real:None');
-        assert.deepEqual(calls.filter(call => call.method === 'PUT').map(call => call.names), [['two.__auto_double_slow.funscript']]);
+        assert.deepEqual(calls.filter(call => call.method === 'PUT').map(call => call.names),
+            [['two.__auto_double_slow.funscript'], ['two.__auto_halve_fast.funscript']]);
         assert.equal(calls.filter(call => call.path === '/Devices/Variants').length, 0);
         calls.length = 0;
         await context('one');
         assert.deepEqual(calls, []);
         await context('three');
         assert.equal(await first.locator('select').first().inputValue(), 'real:default');
+        assert.equal(await first.locator('select').nth(1).inputValue(), 'auto:halve');
+        assert.equal(await page.locator('dialog').count(), 0);
         assert.equal(await second.locator('select').first().inputValue(), 'real:None');
         await page.evaluate(() => {
             const handle = document.querySelector('[data-device-name=First] .device-drag-handle');

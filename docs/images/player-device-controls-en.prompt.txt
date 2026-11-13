@@ -1,0 +1,33 @@
+Generated with the built-in image_gen tool.
+Reference: docs/images/fullscreen-controls.png
+
+Generate a NEW polished EDI Player instructional infographic in English. The provided image is a STYLE REFERENCE ONLY, not an edit target. Match its restrained dark software aesthetic and typography, wordmark, rounded card rows, white fine-line icons with blue highlights. Background #0d1117, cards #161b22 and #21262d, borders #30363d, white #e6edf3, muted #8b949e, accent #58a6ff and #388bfd. Landscape high-resolution 16:10 or wider, large readable text. No photos, no people, no neon or excessive gradients. Create a detailed icon-by-icon help sheet for the actual website controls. Main title "Player & device controls"; subtitle "What each toolbar button does". Small EDI Player logo at top.
+
+Layout: three clearly separated columns of cards with headings and accurately drawn enlarged button icons matching the described actual glyphs. The icons are essential: every row has its own easily recognized icon and its concise label and explanation. These are toolbars/button explanations, not keyboard or VR controller gesture instructions. Do not use a controller illustration. No invented shortcuts.
+COLUMN 1 heading "PLAYBACK TOOLBAR", seven rows:
+1 four outward corner brackets, green button: "Play fullscreen" / "Start playback in fullscreen."
+2 solid square, red button: "Stop" / "Stop playback and return to the start."
+3 play triangle plus vertical bar at right: "Autoplay" / "Automatically play the next video."
+4 circular repeat arrows with tiny 1 or list badge: "Repeat" / "Cycle: off → video → playlist."
+5 bookmark outline with small play triangle inside: "Resume position" / "Remember and restore the last position."
+6 three bullets and horizontal list lines: "Playlist" / "Show or hide the playlist panel."
+7 two horizontal adjustment lines with offset slider ticks: "VR settings" / "Adjust format, screen and head following."
+
+COLUMN 2 heading "DEVICE TOOLBAR", four main rows:
+1 vertical rounded capsule with up/down arrows inside: "Device pause mode" / "On: click / Space controls device pause. Off: click / Space controls video playback."
+2 four ascending vertical bars: "Intensity control" / "Enable intensity adjustment with the mouse wheel or VR stick."
+3 single horizontal double-ended arrow: "Variant switching" / "Enable right-click / B / Y to swap primary and secondary variants."
+4 three horizontal lines: "Devices" / "Show or hide the devices panel."
+Below the four rows put a small inset heading "PER-DEVICE BUTTONS" with the same three icons (capsule, ascending bars, horizontal double arrow) side by side and the explanatory text "Choose which devices follow pause, intensity and variant changes." Add small separate labels below the icons "Pause" / "Intensity" / "Variant". These are participation toggles, NOT direct actions on one device. Bottom note in this column "Blue: enabled · Gray: disabled" and "Red: paused or stopped output". Use small real blue, gray and red state swatches. Explain states for device controls only; green fullscreen and red stop are action colors.
+
+COLUMN 3 heading "ON-VIDEO CONTROLS", seven rows:
+1 play triangle / two pause bars: "Play / pause" / "Toggle video playback directly."
+2 speaker with volume waves and small horizontal slider: "Audio" / "Mute or unmute; drag to set volume."
+3 time button showing "1:24 / 5:00": "Time display" / "Click to switch elapsed / remaining time."
+4 eye outline with slash, pupil and list mini variants: "Persistent progress" / "Cycle: hidden → video → playlist."
+5 small lock: "Head-follow lock" / "Enable delayed head following in VR."
+6 VR goggles outline with two circular lenses: "Enter VR" / "Start an immersive session when available."
+7 four outward corner brackets PLUS short seek-slider sample: "Fullscreen & seeking" / "Toggle fullscreen; drag the bottom timeline to seek."
+
+Footer strip across full width: "Device settings follow each device’s participation. VR controls appear when supported."
+Faithfully render exact English copy with clean hierarchy; no duplicate rows, no missing rows, no extra fabricated controls. Prefer compact explanatory text under bold labels with consistent spacing. Visually precise sharp readable instructional graphic, not a browser screenshot, no browser chrome.

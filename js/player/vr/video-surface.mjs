@@ -4,14 +4,17 @@ import { eyeAspect, eyeUv } from './format.mjs';
 export function videoGeometry(video, settings, eye) {
     const aspect = eyeAspect(video.videoWidth, video.videoHeight, settings);
     const curvature = Math.max(0, Math.min(1.6, Number(settings.curvature) || 0));
-    const geometry = new THREE.PlaneGeometry(settings.width, settings.width / aspect, curvature ? 32 : 1, 1);
+    const geometry = new THREE.PlaneGeometry(settings.width, settings.width / aspect, curvature ? 64 : 1, 1);
     if (curvature) {
         const position = geometry.attributes.position;
-        const radius = settings.width / curvature;
+        // Preserve the original horizontal coordinates and UV spacing. Angular
+        // redistribution stretches the center when the chord width is fixed.
+        const radius = settings.width / (2 * Math.sin(curvature / 2));
         for (let index = 0; index < position.count; index++) {
-            const angle = position.getX(index) / radius;
-            position.setX(index, Math.sin(angle) * radius);
-            position.setZ(index, radius * (Math.cos(angle) - 1));
+            const x = position.getX(index);
+            // Positive local Z is toward the viewer, so the edges wrap forward.
+            // Rationalized sag avoids cancellation near zero curvature.
+            position.setZ(index, x * x / (radius + Math.sqrt(radius * radius - x * x)));
         }
         position.needsUpdate = true;
         geometry.computeVertexNormals();
@@ -30,7 +33,7 @@ export function videoGeometry(video, settings, eye) {
     return geometry;
 }
 
-export function createVideoSurface(video, settings) {
+export function createVideoSurface(video, settings, maxAnisotropy = 1) {
     const group = new THREE.Group();
     const surface = new THREE.Group();
     group.add(surface);
@@ -40,17 +43,33 @@ export function createVideoSurface(video, settings) {
         surface.clear(); material?.dispose(); texture?.dispose();
     }
     function rebuild() {
-        clear();
-        // Native media and its events remain the single playback/sync owner.
-        texture = new THREE.VideoTexture(video);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false });
+        surface.children.forEach(mesh => mesh.geometry.dispose());
+        surface.clear();
+        if (!texture) {
+            // Native media and its events remain the single playback/sync owner.
+            texture = new THREE.VideoTexture(video);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            // Keep the decoded source dimensions, with smooth sampling when the
+            // screen is angled. Avoid rebuilding a mip chain for every video frame.
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = false;
+            texture.anisotropy = Math.max(1, Number(maxAnisotropy) || 1);
+            material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false });
+        }
         for (let eye = 0; eye < 2; eye++) {
             const mesh = new THREE.Mesh(videoGeometry(video, settings, eye), material);
             mesh.layers.set(eye + 1); // Three's WebXR left/right camera layers.
             surface.add(mesh);
         }
     }
+    function dimensions() {
+        const width = Number(settings.width) || 2.4;
+        return { width, height: width / eyeAspect(video.videoWidth, video.videoHeight, settings) };
+    }
+    function useNativeLayer(enabled) {
+        if (material) material.visible = !enabled;
+    }
     rebuild();
-    return { group, rebuild, meshes: () => surface.children, dispose: clear };
+    return { group, rebuild, dimensions, useNativeLayer, meshes: () => surface.children, dispose: clear };
 }

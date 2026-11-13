@@ -40,6 +40,8 @@
     .video-stage:fullscreen { display: flex; width: 100vw; height: 100vh; align-items: center; justify-content: center; border-radius: 0; background: #000; }
     .video-stage:fullscreen .player-video { width: 100%; height: 100%; max-height: none; object-fit: contain; }
     .custom-video-controls { position: absolute; z-index: 40; right: .75rem; bottom: .75rem; left: .75rem; padding: .55rem .65rem .45rem; border: 1px solid rgba(255,255,255,.14); border-radius: .55rem; background: linear-gradient(180deg, rgba(23,28,34,.82), rgba(12,15,18,.92)); color: #f8f9fa; box-shadow: 0 .35rem 1rem rgba(0,0,0,.3); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(.35rem); transition: opacity .16s ease, transform .16s ease, visibility .16s ease; backdrop-filter: blur(7px); }
+    /* Keep video actions above the fullscreen reveal strip and side panels. */
+    .custom-video-controls { z-index: 80; }
     .video-stage.controls-visible .custom-video-controls,
     .custom-video-controls:focus-within { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
     .custom-controls-row { display: flex; min-width: 0; align-items: center; gap: .55rem; }
@@ -286,7 +288,7 @@
                         </svg>
                     </button>
                     <button id="variantToggle" class="btn btn-outline-secondary player-option variant-toggle-button" type="button"
-                            aria-pressed="false" aria-expanded="false" aria-controls="variantTogglePanel"
+                            aria-pressed="false"
                             aria-label="Right click to switch device variant" data-tooltip="Right click to switch device variant">
                         <svg class="player-option-icon variant-toggle-icon" viewBox="0 0 28 24" aria-hidden="true">
                             <path d="M4 12h20M8 8l-4 4 4 4M20 8l4 4-4 4" />
@@ -297,22 +299,7 @@
                         <svg class="player-option-icon utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                     </div>
-                    <div id="variantTogglePanel" class="variant-toggle-panel" hidden>
-                        <button id="closeVariantPanel" class="btn btn-sm btn-outline-secondary icon-button variant-panel-close" type="button" aria-label="Close variant selection">
-                            <svg class="player-option-icon utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                        </button>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <label class="form-label" for="primaryVariant">Default primary</label>
-                                <select id="primaryVariant" class="form-select"></select>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label" for="secondaryVariant">Default secondary</label>
-                                <select id="secondaryVariant" class="form-select"></select>
-                            </div>
-                        </div>
-                        <div id="variantToggleStatus" class="variant-toggle-status small text-muted mt-2"></div>
-                    </div>
+                    <div id="variantToggleStatus" class="visually-hidden" role="status" aria-live="polite"></div>
                 </div>
                 </div>
             </div>

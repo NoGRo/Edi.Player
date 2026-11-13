@@ -1,0 +1,26 @@
+Generated with the built-in image_gen tool.
+
+Create a polished Spanish-language instructional infographic for EDI Player, a dark desktop video player. Use-case: infographic-diagram. Landscape 16:9, high resolution, beautifully typeset, genuinely readable clean Spanish text, generous margins. Faithfully match the existing website's restrained dark software aesthetic: background #0d1117, rounded rectangular panels #161b22 and #21262d, thin borders #30363d, primary text #e6edf3, secondary #8b949e, accent blue #58a6ff and #388bfd. Flat sharp line icons similar to Bootstrap Icons, system sans-serif typography, subtle shadows, no neon, no noisy gradients, no photography or people. Professional product help image.
+
+Header: small blue play icon and wordmark "EDI Player", large title "Controles en pantalla completa", subtitle "Guía rápida · Escritorio y VR".
+Two balanced columns with consistent horizontal card rows, clear input icons on left, readable action on right.
+Left column heading "RATÓN Y TECLADO" with mouse and keyboard line icons.
+Exactly these six cards:
+1. keycap "F" and mouse double-click icon — heading "Pantalla completa"; description "F o doble clic para entrar y salir."
+2. mouse left-button icon and keycap "Espacio" — heading "Play / pausa"; description "Clic o Espacio. En modo dispositivos, pausa o reanuda los dispositivos."
+3. mouse wheel icon — heading "Intensidad"; description "Rueda arriba / abajo. Giros rápidos producen cambios mayores."
+4. mouse right-button icon — heading "Cambiar variante"; description "Clic derecho, con el cambio de variante habilitado."
+5. timeline icon — heading "Posición del video"; description "Arrastrá la barra de progreso para avanzar o retroceder."
+6. cursor icon — heading "Mostrar controles"; description "Mové el puntero sobre el video."
+
+Right column heading "MANDOS VR" with a sleek minimal diagram of a Touch-style controller at top near heading, thumbstick and grip visibly identifiable. Do not make large decorative objects consume text space.
+Exactly these six cards:
+1. thumbstick press icon — heading "Clic del stick"; description "Play / pausa del video."
+2. vertical arrows icon — heading "Stick arriba / abajo"; description "Intensidad progresiva según inclinación. Al máximo: 0–100 en ≈0,5 s."
+3. horizontal arrows icon with a small blue badge "80%" — heading "Stick izquierda / derecha"; description "Retrocede / avanza 10 s desde el 80% lateral."
+4. accelerating chevrons icon — heading "Mantenelo para acelerar"; description "Desde 0,5 s repite; los saltos crecen hasta 30 s a los 3 s."
+5. two keycaps "A / X" and "B / Y" — heading "Botones del mando"; description "A / X: acción de clic del reproductor. B / Y: cambiar variante."
+6. grip icon — heading "Mover la pantalla"; description "Mantené Grip o el gatillo sobre el video. Grip + clic del stick: recentrar."
+
+Bottom slim full-width note with small blue information icon, exact text: "Intensidad y variantes respetan las opciones activadas y los dispositivos participantes."
+Accurate typography including accents. Render all quoted text verbatim without extraneous explanations, invented shortcuts, or English labels. This is a finished static guide, not a screenshot of a browser, no browser chrome, no watermarks. Keep title strong and paragraphs short, a coherent spacious grid with no overlapping elements.

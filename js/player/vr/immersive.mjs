@@ -67,7 +67,7 @@ export function createImmersive({ state, elements, currentItem, setIntensity }) 
         try {
             // Request directly from the button event, before imports or fullscreen
             // exit can consume the browser's transient user activation.
-            session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] });
+            session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'layers'] });
             session.addEventListener('end', cleanup, { once: true });
             if (document.fullscreenElement) await document.exitFullscreen();
             const { createVrRuntime } = await import('./runtime.mjs');
@@ -81,6 +81,12 @@ export function createImmersive({ state, elements, currentItem, setIntensity }) 
                         report(`Could not render VR controls: ${error.message}`, true);
                     });
                 },
+                onTogglePlayback: async () => {
+                    try {
+                        if (elements.video.paused || elements.video.ended) await elements.video.play();
+                        else elements.video.pause();
+                    } catch (error) { report(`Could not change playback: ${error.message}`, true); }
+                },
                 onPrimary: () => {
                     // Exactly the existing left-mouse sequence, including the
                     // click suppression flags and the configured stroker option.
@@ -91,7 +97,7 @@ export function createImmersive({ state, elements, currentItem, setIntensity }) 
             });
             if (!session) { runtime?.dispose(); runtime = null; return; }
             elements.enterVr.setAttribute('aria-pressed', 'true');
-            menu.setStatus('Grip moves the video. While gripping, the stick changes size/curve and clicking it recenters.');
+            menu.setStatus('Stick click plays/pauses the video. Grip moves the video; while gripping, the stick changes size/curve and clicking it recenters.');
         } catch (error) {
             const failedSession = session;
             if (failedSession) { try { await failedSession.end(); } catch { cleanup(); } }

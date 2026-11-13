@@ -1,0 +1,22 @@
+Generated with the built-in image_gen tool.
+Reference: docs/images/fullscreen-controls.png
+
+Edit the provided EDI Player guide image. Preserve the layout, illustrations, iconography, dark #0d1117 background, #161b22 panels, #30363d borders, white #e6edf3 type and #58a6ff blue accents. Translate ALL Spanish text to precise natural English, matching the original hierarchy and readable sizes, wrapping cleanly. Keep wordmark EDI Player. Exact replacement text:
+Title "Fullscreen controls"
+Subtitle "Quick guide · Desktop and VR"
+Left section "MOUSE & KEYBOARD"
+1 "Fullscreen" / "Press F or double-click to enter or exit."
+2 "Play / pause" / "Click or Space. In device mode, pauses or resumes the devices." Keycap text "Space"
+3 "Intensity" / "Scroll up / down. Faster scrolling makes larger changes."
+4 "Switch variant" / "Right-click when variant switching is enabled."
+5 "Video position" / "Drag the progress bar to seek forward or backward."
+6 "Show controls" / "Move the pointer over the video."
+Right section "VR CONTROLLERS"
+1 "Stick click" / "Play / pause the video."
+2 "Stick up / down" / "Progressive intensity based on tilt. Full tilt: 0–100 in ≈0.5 s."
+3 "Stick left / right" / "Seek back / forward 10 s at 80% lateral tilt." Preserve blue badge "80%".
+4 "Hold to accelerate" / "Repeats after 0.5 s; jumps grow to 30 s after 3 s held."
+5 "Controller buttons" / "A / X: player click action. B / Y: switch variant." Preserve A / X and B / Y keycaps.
+6 "Move the screen" / "Hold Grip or the trigger over the video. Grip + stick click: recenter."
+Footer "Intensity and variant changes follow enabled options and device participation."
+Keep all text in English. Finished sharp landscape infographic, generous readable typography, no extra content.

@@ -21,12 +21,48 @@ test('history wins, shared selections continue, missing choices fall back and St
     const input = { variants: ['default', 'fast', 'None'], selected: 'fast',
         previous: { primary: 'real:fast', secondary: 'real:old' }, defaults: { defaultVariant: 'default' } };
     assert.equal(videoVariantPair(input).primary, 'real:fast');
-    assert.equal(videoVariantPair(input).secondary, 'real:default');
+    assert.equal(videoVariantPair(input).secondary, 'auto:halve');
+    assert.equal(videoVariantPair(input).bases.secondary, 'fast');
     assert.equal(videoVariantPair({ ...input, history: { primary: 'real:default' } }).primary, 'real:default');
     assert.equal(videoVariantPair({ ...input, selected: 'None', history: { primary: 'real:fast' } }).primary, 'real:None');
     const pair = videoVariantPair({ ...input, history: { primary: 'auto:double', bases: { primary: 'fast' } } });
     assert.equal(pair.primary, 'auto:double');
     assert.equal(pair.bases.primary, 'fast');
+});
+
+test('new videos prefer default over the device state and ignore former global defaults', () => {
+    const pair = videoVariantPair({ variants: ['fast', 'Default', 'None'], selected: 'fast',
+        defaults: { primary: 'real:fast', secondary: 'real:fast' } });
+    assert.equal(pair.primary, 'real:Default');
+    assert.equal(pair.secondary, 'auto:halve');
+    assert.equal(pair.bases.secondary, 'Default');
+});
+
+test('without default the first original supplies both primary and the half-speed base', () => {
+    const pair = videoVariantPair({ variants: ['None', auto, 'slow', 'fast'] });
+    assert.equal(pair.primary, 'real:slow');
+    assert.equal(pair.secondary, 'auto:halve');
+    assert.equal(pair.bases.secondary, 'slow');
+    assert.equal(videoVariantPair({ variants: ['None'] }).secondary, 'real:None');
+});
+
+test('compatible device pairs continue while history overrides each saved side and base', () => {
+    const previous = { primary: 'real:fast', secondary: 'auto:double', bases: { secondary: 'slow' } };
+    const input = { variants: ['default', 'fast', 'slow', 'None'], previous, selected: 'fast' };
+    assert.deepEqual(videoVariantPair(input), { ...previous, activeSide: 'primary' });
+    const pair = videoVariantPair({ ...input, history: { primary: 'real:slow', secondary: 'auto:halve',
+        bases: { secondary: 'fast' } } });
+    assert.equal(pair.primary, 'real:slow');
+    assert.equal(pair.secondary, 'auto:halve');
+    assert.equal(pair.bases.secondary, 'fast');
+});
+
+test('missing originals and automatic bases fall back without carrying an unrelated base', () => {
+    const pair = videoVariantPair({ variants: ['default', 'other', 'None'],
+        previous: { primary: 'real:fast', secondary: 'auto:double', bases: { secondary: 'slow' } } });
+    assert.equal(pair.primary, 'real:default');
+    assert.equal(pair.secondary, 'auto:halve');
+    assert.equal(pair.bases.secondary, 'default');
 });
 
 function assetRig(files) {

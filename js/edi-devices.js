@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const {
-        autoVariantName, changeDeviceVariantPair, initializeDeviceVariantPair,
+        autoVariantName, changeDeviceVariantPair,
         listOriginalVariants, parseAutoVariant
     } = await import('/js/funscript-tools.mjs');
 
@@ -10,10 +10,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('devicesGrid');
     const video = document.getElementById('videoPlayer');
     const toggle = document.getElementById('variantToggle');
-    const panel = document.getElementById('variantTogglePanel');
-    const closePanel = document.getElementById('closeVariantPanel');
-    const primarySelect = document.getElementById('primaryVariant');
-    const secondarySelect = document.getElementById('secondaryVariant');
     const toggleStatus = document.getElementById('variantToggleStatus');
     const globalSettingsKey = 'edi-player-variant-toggle';
     const devicePairsKey = 'edi-player-device-variant-pairs-v2';
@@ -42,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let mutationRevision = 0;
     let refreshRevision = 0;
     let switchQueue = Promise.resolve();
-    let panelHideTimer = null;
     let assetsReloadPending = false;
     let assetsNeedDeviceRefresh = false;
 
@@ -78,7 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deviceVariants = device => variantsForVideo(device, videoContext, videoAssets).filter(Boolean);
     const findDeviceVariant = (device, variant) => deviceVariants(device)
         .find(candidate => candidate.toLowerCase() === variant?.toLowerCase()) || null;
-    const physicalVariants = () => [...new Set(devices.flatMap(deviceVariants))];
     const realSelection = value => value?.startsWith('real:') ? value.slice(5) : null;
     const autoSelection = value => value?.startsWith('auto:') ? value.slice(5) : null;
     const physicalSelection = (value, base) => realSelection(value)
@@ -105,17 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (videoContext && !videoKnown()) return { primary: 'real:None', secondary: 'real:None',
             activeSide: current?.activeSide || activeSide() };
         if (videoContext) return current || { primary: 'real:None', secondary: 'real:None', activeSide: activeSide() };
-        const initialized = initializeDeviceVariantPair(
-            current,
-            [...new Set(device.variants || [])],
-            deviceRouting.visibleVariant(device),
-            globalSettings);
-        if (!current || current.primary !== initialized.primary
-            || current.secondary !== initialized.secondary) {
-            storedPairs[device.name] = initialized;
-            savePairs();
-        }
-        return storedPairs[device.name];
+        return current || { primary: '', secondary: '', activeSide: activeSide() };
     }
 
     function deviceSide(device) {
@@ -144,42 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         select.value = [...select.options].some(option => option.value === selectedValue)
             ? selectedValue
             : '';
-    }
-
-    function refreshGlobalOptions() {
-        const variants = physicalVariants();
-        if (!videoContext) {
-            appendVariantOptions(primarySelect, variants, globalSettings.primary);
-            appendVariantOptions(secondarySelect, variants, globalSettings.secondary);
-            return;
-        }
-        if (videoContext) {
-            const defaults = videoVariantPair({ previous: globalSettings, variants,
-                defaults: { defaultVariant: 'default' } });
-            globalSettings.primary = defaults.primary;
-            globalSettings.secondary = defaults.secondary;
-        }
-        if (!globalSettings.primary) {
-            const first = variants.find(variant => variant !== 'None') || variants[0];
-            globalSettings.primary = first ? `real:${first}` : '';
-        }
-        if (!globalSettings.secondary) {
-            const alternate = variants.find(variant => `real:${variant}` !== globalSettings.primary
-                && variant !== 'None');
-            const first = alternate || variants.find(variant => variant !== 'None') || variants[0];
-            globalSettings.secondary = first ? `real:${first}` : '';
-        }
-        appendVariantOptions(primarySelect, variants, globalSettings.primary);
-        appendVariantOptions(secondarySelect, variants, globalSettings.secondary);
-        saveGlobalSettings();
-    }
-
-    function setPanelOpen(open) {
-        panel.hidden = !open;
-        toggle.setAttribute('aria-expanded', String(open));
-        document.dispatchEvent(new CustomEvent('edi-variant-panel', { detail: { open } }));
-        if (panelHideTimer) clearTimeout(panelHideTimer);
-        panelHideTimer = open ? setTimeout(() => setPanelOpen(false), 8000) : null;
     }
 
     async function fetchAssets(videoName = videoContext?.name) {
@@ -602,19 +550,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function variantSelectFocused() {
         const focused = document.activeElement;
-        return focused === primarySelect || focused === secondarySelect
-            || grid.contains(focused)
-                && focused?.matches?.('.device-variants select, .device-range-input');
+        return grid.contains(focused)
+            && focused?.matches?.('.device-variants select, .device-range-input');
     }
 
     async function reconcileVideoPairs(previous = storedPairs, selections = {}) {
         if (!videoKnown()) return;
         const changes = {};
+        // Preparing a generated variant may save pairs while other devices are still pending.
+        const history = { ...videoPairs[videoKey()] };
         for (const device of [...devices]) {
             const pair = videoVariantPair({
-                history: videoPairs[videoKey()]?.[device.name], previous: previous[device.name],
+                history: history[device.name], previous: previous[device.name],
                 variants: deviceVariants(device), selected: selections[device.name] ?? deviceRouting.visibleVariant(device),
-                defaults: { ...globalSettings, defaultVariant: 'default' },
+                defaults: { defaultVariant: 'default' },
                 side: previous[device.name]?.activeSide || activeSide()
             });
             storedPairs[device.name] = pair;
@@ -659,7 +608,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (syncVideo && videoContext) await reconcileVideoPairs();
         devices.forEach(pairFor);
         const preserveEditor = variantSelectFocused();
-        if (!preserveEditor) refreshGlobalOptions();
         if (render && !preserveEditor) renderDevices();
         else {
             rangePainters.forEach(paint => paint());
@@ -712,45 +660,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     toggle.addEventListener('click', () => {
-        if (!globalSettings.enabled) {
-            globalSettings.enabled = true;
-            setPanelOpen(true);
-        } else if (panel.hidden) {
-            setPanelOpen(true);
-        } else {
-            globalSettings.enabled = false;
-            setPanelOpen(false);
-        }
+        globalSettings.enabled = !globalSettings.enabled;
         saveGlobalSettings();
         renderFeatureState();
     });
-    closePanel.addEventListener('click', event => {
-        event.stopPropagation();
-        setPanelOpen(false);
-    });
-    panel.addEventListener('pointerdown', () => setPanelOpen(true));
-    panel.addEventListener('focusin', () => setPanelOpen(true));
-    document.addEventListener('pointerdown', event => {
-        if (!panel.hidden && !panel.contains(event.target) && !toggle.contains(event.target))
-            setPanelOpen(false);
-    }, true);
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && !panel.hidden) setPanelOpen(false);
-    });
-
-    function changeGlobalSelection(side, value) {
-        try {
-            globalSettings = changeDeviceVariantPair(globalSettings, side, value);
-            saveGlobalSettings();
-            refreshGlobalOptions();
-            setStatus('Defaults saved. Existing device pairs are unchanged.');
-        } catch (error) {
-            setStatus(error.message, true);
-            refreshGlobalOptions();
-        }
-    }
-    primarySelect.addEventListener('change', () => changeGlobalSelection('primary', primarySelect.value));
-    secondarySelect.addEventListener('change', () => changeGlobalSelection('secondary', secondarySelect.value));
     document.addEventListener('focusout', event => {
         if (!(event.target instanceof HTMLSelectElement)
             && !event.target?.matches?.('.device-range-input')) return;
@@ -844,7 +757,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (assetsNeedDeviceRefresh) await refreshDeviceState({ render: false, force: true, syncVideo: false });
                 videoContext = context;
                 if (context) await reconcileVideoPairs(previous, selections);
-                refreshGlobalOptions();
                 renderDevices();
                 publishAssetsReload();
             } finally { editingCount--; }

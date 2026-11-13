@@ -1,9 +1,248 @@
 {
   "Edi": {
+    "Filler": true,
+    "Gallery": true,
+    "Reactive": true,
+    "UseChannels": true,
+    "Channels": [],
+    "ExecuteOnReady": "http://127.0.0.1:5000/",
     "AutoLaunch": true,
-    "ExecuteOnReady": "http://127.0.0.1:5000/"
+    "UseHttps": true,
+    "UseLogs": false,
+    "UseObsChapterGenerator": false
   },
   "Gallery": {
-    "GalleryPath": "./"
+    "GalleryPath": "./",
+    "GenerateDefinitionFromChapters": true,
+    "GenerateChaptersFromDefinition": false,
+    "InproveLoopDetection": true
+  },
+  "GalleryBundler": {
+    "BundlePerGallery": true
+  },
+  "Devices": {
+    "Devices": {
+      "AutoBlow [ibjckz1x0q91]": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": -100
+      },
+      "The Handy 2 Pro (BLE)": {
+        "Variant": "default",
+        "Channel": "pene",
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": -100
+      },
+      "Lovense Gemini Vibrate: 1": {
+        "Variant": "default",
+        "Channel": "pezones",
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Lovense Gemini Vibrate: 2": {
+        "Variant": "default",
+        "Channel": "pezones",
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Lovense Edge Vibrate: 1": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Lovense Edge Vibrate: 2": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "FUNOSR-SSR1-V2.0": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Preview Device": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "The Handy [RFupA]": {
+        "Variant": "default",
+        "Channel": "stroker",
+        "Min": 5,
+        "Max": 88,
+        "OffsetMS": null
+      },
+      "The Handy [RFupA] (1)": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "The Handy [RFupA] (2)": {
+        "Variant": "None",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Output Recorder Device": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "The Handy [PiBnz]": {
+        "Variant": "Linear",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "The Handy": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Lovense Dolce Vibrate: 1": {
+        "Variant": "vibro-breast-Ch2",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Lovense Dolce Vibrate: 2": {
+        "Variant": "vibro-breast-Ch2",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "The Handy [ppJdVv3V]": {
+        "Variant": "default",
+        "Channel": "main",
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "The Handy [92H0Y]": {
+        "Variant": "default",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "Lovense Hush": {
+        "Variant": "None",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "TCode v0.3": {
+        "Variant": "detailed",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "": {
+        "Variant": "Linear",
+        "Channel": null,
+        "Min": 0,
+        "Max": 100,
+        "OffsetMS": null
+      },
+      "MOT: No current sense.": {
+        "Variant": "default",
+        "Channel": "pezones",
+        "Min": 2,
+        "Max": 100,
+        "OffsetMS": null
+      }
+    }
+  },
+  "OsrDevices": {
+    "Devices": {
+      "FUNOSR-SSR1-V2.0": {
+        "EnableMultiAxis": true,
+        "UpdateRate": 200,
+        "RangeLimits": {
+          "Linear": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Roll": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Pitch": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Twist": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Sway": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Surge": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          }
+        }
+      },
+      "MOT: No current sense.": {
+        "EnableMultiAxis": true,
+        "UpdateRate": 200,
+        "RangeLimits": {
+          "Linear": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Roll": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Pitch": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Twist": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Sway": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          },
+          "Surge": {
+            "LowerLimit": 0,
+            "UpperLimit": 100
+          }
+        }
+      }
+    }
+  },
+  "DgLabDevices": {
+    "Devices": {}
   }
 }

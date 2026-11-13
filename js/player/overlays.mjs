@@ -4,6 +4,8 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
     const { optionButtons, playbackToolbarHome } = elements;
     const { video, fullscreenTarget, playbackToolbar, fullscreenPlaybackOverlay } = elements;
     let currentVariantSummary = null;
+    const canvasContent = new WeakMap();
+    const dangerColor = '#dc3545';
 
     const deviceControls = elements.deviceControls;
 
@@ -47,6 +49,7 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
         presentation.intensityHideTimer = null;
         intensityOverlay.style.opacity = '0';
         intensityOverlay.style.transform = 'scale(0.96)';
+        document.dispatchEvent(new CustomEvent('edi-player-overlay', { detail: { visible: false } }));
         hideFullscreenToolbar(force);
     }
 
@@ -60,6 +63,9 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
         intensityOverlay.style.opacity = '1';
         if (presentation.intensityHideTimer) clearTimeout(presentation.intensityHideTimer);
         presentation.intensityHideTimer = duration == null ? null : setTimeout(hidePlayerOverlay, duration);
+        document.dispatchEvent(new CustomEvent('edi-player-overlay', {
+            detail: { visible: true, parts: canvasContent.get(content) || [{ text: String(content ?? '') }], duration }
+        }));
     }
 
     function createIconOverlayContent(button, text, danger = false) {
@@ -81,6 +87,10 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
         const label = document.createElement('span');
         label.textContent = text;
         content.append(label);
+        canvasContent.set(content, [
+            { icon: button === optionButtons.intensity ? 'intensity' : 'variant', color: danger ? dangerColor : '#fff' },
+            { text, color: danger ? dangerColor : '#fff' }
+        ]);
         return content;
     }
 
@@ -126,6 +136,7 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
             slash.style.strokeWidth = '3.2';
             svg.append(slash);
         }
+        canvasContent.set(svg, [{ icon: 'stroker', paused, color: paused ? dangerColor : '#fff' }]);
         return svg;
     }
 
@@ -139,6 +150,9 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
         summary.style.alignItems = 'center';
         summary.style.gap = '0.65rem';
         summary.append(createStrokerStateIcon(state.strokerPaused || video.paused || video.ended));
+        const parts = [{ icon: 'stroker', paused: state.strokerPaused || video.paused || video.ended,
+            color: state.strokerPaused || video.paused || video.ended ? dangerColor : '#fff' },
+        { text: `${state.currentIntensity}%`, color: state.currentIntensity === 0 ? dangerColor : '#fff' }];
 
         const intensity = document.createElement('span');
         intensity.textContent = `${state.currentIntensity}%`;
@@ -152,12 +166,13 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
             if (currentVariantSummary.length > 3) values.push('…');
             variant.textContent = values.join(' · ');
             summary.append(variant);
+            parts.push({ text: variant.textContent, color: '#fff' });
         }
+        canvasContent.set(summary, parts);
         return summary;
     }
 
     function showPlayerSummary(keepVisible = false) {
-        if (!document.getElementById('variantTogglePanel')?.hidden) return;
         showPlayerOverlay(createFullscreenSummary(), keepVisible ? null : 650);
         const fullscreen = document.fullscreenElement === fullscreenTarget;
         intensityOverlay.style.pointerEvents = fullscreen ? 'auto' : 'none';
@@ -224,15 +239,11 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
         if (hide) hidePlayerOverlay();
     }
 
-    function handlePlayerSummaryMovement(overControls, pointerOverVideo = true) {
-        if (!document.getElementById('variantTogglePanel')?.hidden) {
-            resetFullscreenSummary();
-            return;
-        }
+    function handlePlayerSummaryMovement(overControls, pointerOverVideo = true, immersive = false) {
         if (presentation.fullscreenDeviceControlsVisible) return;
         const fullscreen = document.fullscreenElement === fullscreenTarget;
         const windowed = !document.fullscreenElement && pointerOverVideo;
-        if (!fullscreen && !windowed) {
+        if (!fullscreen && !windowed && !immersive) {
             resetFullscreenSummary(false);
             return;
         }
@@ -270,6 +281,7 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
     }
 
     function mount() {
+        document.addEventListener('edi-vr-summary-movement', () => handlePlayerSummaryMovement(false, true, true));
         if (deviceControlsHome) deviceControls.before(deviceControlsHome);
         intensityOverlay.className = 'edi-intensity-overlay';
         intensityOverlay.style.position = 'fixed';
@@ -291,8 +303,7 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
         try { document.body.appendChild(intensityOverlay); } catch (e) { /* ignore */ }
         intensityOverlay.addEventListener('pointerenter', showFullscreenDeviceControls);
         intensityOverlay.addEventListener('pointerleave', () => {
-            if (!presentation.fullscreenDeviceControlsVisible
-                || !document.getElementById('variantTogglePanel')?.hidden) return;
+            if (!presentation.fullscreenDeviceControlsVisible) return;
             restoreDeviceControls();
             fullscreenSummaryVisible = true;
             showPlayerSummary(true);
@@ -313,9 +324,6 @@ export function createOverlays({ state, elements, presentation, playerUiActive, 
             showPlayerOverlay(createIconOverlayContent(
                 document.getElementById('variantToggle'),
                 text));
-        });
-        document.addEventListener('edi-variant-panel', event => {
-            if (event.detail?.open && !presentation.fullscreenDeviceControlsVisible) resetFullscreenSummary();
         });
         document.addEventListener('fullscreenchange', () => positionIntensityOverlay());
         window.addEventListener('resize', () => positionIntensityOverlay());
